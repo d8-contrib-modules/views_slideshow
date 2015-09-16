@@ -50,6 +50,7 @@ function _views_slideshow_preprocess_views_view_slideshow(&$vars) {
     $view = $vars['view'];
     $rows = $vars['rows'];
     $num_divs = count($rows);
+    // @todo: This #name element is not available of Views edit page.
     $vss_id = $view->element['#name'] . '-' . $view->current_display;
 
     // Give each slideshow a unique id if there are more than one on the page.
@@ -86,10 +87,10 @@ function _views_slideshow_preprocess_views_view_slideshow(&$vars) {
     foreach ($addons as $addon_id => $addon_info) {
       foreach ($addon_info['accepts'] as $imp_key => $imp_value) {
         if (is_array($imp_value)) {
-          $methods[$imp_key][] = \Drupal::service('plugin.manager.views_slideshow.slideshow_type')->formatAddonName($addon_id);
+          $methods[$imp_key][] = \Drupal::service('views_slideshow.format_addons_name')->format($addon_id);
         }
         else {
-          $methods[$imp_value][] = \Drupal::service('plugin.manager.views_slideshow.slideshow_type')->formatAddonName($addon_id);
+          $methods[$imp_value][] = \Drupal::service('views_slideshow.format_addons_name')->format($addon_id);
         }
       }
     }
@@ -183,7 +184,7 @@ function template_preprocess_views_slideshow_pager_widget_render(&$vars) {
   $vars['#attached']['library'][] = 'views_slideshow/widget_info';
   $vars['#attached']['drupalSettings']['viewsSlideshowPager'][$vars['vss_id']] = array(
     $vars['location'] => array(
-      'type' => \Drupal::service('plugin.manager.views_slideshow.slideshow_type')->formatAddonName($vars['settings']['type']),
+      'type' => \Drupal::service('views_slideshow.format_addons_name')->format($vars['settings']['type']),
     ),
   );
 
@@ -216,12 +217,8 @@ function template_preprocess_views_slideshow_pager_fields(&$vars) {
   );
 
   // Add hover intent library.
-  // @todo Check if there is a better way to detect optional libraries.
   if ($vars['settings']['views_slideshow_pager_fields']['views_slideshow_pager_fields_hover']) {
-    $hoverIntent = \Drupal::service('library.discovery')->getLibraryByName('views_slideshow', 'jquery_hoverIntent');
-    if (isset($hoverIntent['js'][0]['data']) && file_exists($hoverIntent['js'][0]['data'])) {
-      $vars['#attached']['library'][] = 'views_slideshow/jquery_hoverIntent';
-    }
+    $vars['#attached']['library'][] = 'views_slideshow/jquery_hoverIntent';
   }
 
   $vars['widget_id'] = $vars['attributes']['id'];
@@ -231,7 +228,7 @@ function template_preprocess_views_slideshow_pager_fields(&$vars) {
   // Render all the fields unless there is only 1 slide and the user specified
   // to hide them when there is only one slide.
   $vars['rendered_field_items'] = '';
-  if (empty($vars['settings']['hide_on_single_slide']) || count($vars['view']->result) > $vars['view']->style_options['views_slideshow_cycle']['items_per_slide']) {
+  if (empty($vars['settings']['hide_on_single_slide']) || count($vars['view']->result) > $vars['view']->style_plugin->options['views_slideshow_cycle']['items_per_slide']) {
     foreach ($vars['view']->result as $count => $node) {
       $rendered_fields = '';
       foreach ($vars['settings']['views_slideshow_pager_fields']['views_slideshow_pager_fields_fields'] as $field => $use) {
@@ -284,7 +281,7 @@ function template_preprocess_views_slideshow_controls_widget_render(&$vars) {
   $vars['#attached']['library'][] = 'views_slideshow/widget_info';
   $vars['#attached']['drupalSettings']['viewsSlideshowControls'][$vars['vss_id']] = array(
     $vars['location'] => array(
-      'type' => \Drupal::service('plugin.manager.views_slideshow.slideshow_type')->formatAddonName($vars['settings']['type']),
+      'type' => \Drupal::service('views_slideshow.format_addons_name')->format($vars['settings']['type']),
     ),
   );
 
